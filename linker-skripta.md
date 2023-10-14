@@ -45,8 +45,25 @@ SECTIONS
 }
 
 
+3. Nacin (definisanje VMA i LMA adrese)
+
+MEMORY
+{
+	PRVI_REGION (rwx) : ORIGIN = 0x0000FF00, LENGTH = 32k
+	DRUGI_REGION (rwx) : ORIGIN = 0x76547645, LENGTH = 32k
+}
+
+SECTIONS
+{
+	podaci : 
+	{
+		*(.data)
+	} > PRVI_REGION AT>DRUGI_REGION
+}
+
 
 Nacin pokretanje linker skripte:
 
 arm-none-eabi-ld.exe --script=*ime_skripte* *ulazni_obj_fajlovi* -o *name*.elf
+
 
