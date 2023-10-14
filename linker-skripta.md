@@ -1,69 +1,69 @@
-1. Nacin
-SECTIONS
-{
-	*ime_sekcije* *adresa_sekcije* :
-	 {
-	 	*obj_fajlovi iz kojih uzimati sekcije*(*sekcije koje se uzimaju*)
-	 }
-}
+>1. Način
 
-primer:
-SECTIONS
-{
-	prva 0x0000FF00 :
+	SECTIONS
 	{
-		main.o(.text) /* umesto main.o '*' wildcard za sve fajlove iz komande*/
+		*ime_sekcije* *adresa_sekcije* :
+		{
+			*obj_fajlovi iz kojih uzimati sekcije* (*sekcije koje se uzimaju*)
+		}
 	}
-}
 
-2. Nacin
-MEMORY
-{
-	*ime_regiona* (rwx) : ORIGIN = *adresa*, LENGTH = *velicina*
-}
-SECTIONS
-{
-	*ime_sekcije* :
+	Primer:
+
+	SECTIONS
 	{
-		*obj_fajlovi*(*sekcije*)
-	} > *ime_regiona*
-}
+		prva 0x0000FF00 :
+		{
+			main.o(.text) /* umesto main.o '*' wildcard za sve fajlove iz komande */
+		}
+	}
 
-primer:
+>2. Način
 
-MEMORY
-{
-	PRVI_REGION (rwx) : ORIGIN = 0x0000FF00, LENGTH = 32k
-}
-
-SECTIONS
-{
-	kod :
+	MEMORY
 	{
-		*(.text)
-	} > PRVI_REGION
-}
-
-
-3. Nacin (definisanje VMA i LMA adrese)
-
-MEMORY
-{
-	PRVI_REGION (rwx) : ORIGIN = 0x0000FF00, LENGTH = 32k
-	DRUGI_REGION (rwx) : ORIGIN = 0x76547645, LENGTH = 32k
-}
-
-SECTIONS
-{
-	podaci : 
+		*ime_regiona* (rwx) : ORIGIN = *adresa*, LENGTH = *velicina*
+	}
+	SECTIONS
 	{
-		*(.data)
-	} > PRVI_REGION AT>DRUGI_REGION
-}
+		*ime_sekcije* :
+		{
+			*obj_fajlovi*(*sekcije*)
+		} > *ime_regiona*
+	}
+	
+	Primer:
+	
+	MEMORY
+	{
+		PRVI_REGION (rwx) : ORIGIN = 0x0000FF00, LENGTH = 32k
+	}
+	SECTIONS
+	{
+		kod :
+		{
+			*(.text)
+		} > PRVI_REGION
+	}
+
+>3. Način (definisanje VMA i LMA adrese)
+
+	MEMORY
+	{
+		PRVI_REGION (rwx) : ORIGIN = 0x0000FF00, LENGTH = 32k
+		DRUGI_REGION (rwx) : ORIGIN = 0x76547645, LENGTH = 32k
+	}
+	SECTIONS
+	{
+		podaci :
+		{
+			*(.data)
+		} > PRVI_REGION AT>DRUGI_REGION
+	}
 
 
-Nacin pokretanje linker skripte:
 
-arm-none-eabi-ld.exe --script=*ime_skripte* *ulazni_obj_fajlovi* -o *name*.elf
+ 
+>Način pokretanja linker skripte:
 
-
+	arm-none-eabi-ld.exe --script=*ime_skripte* *ulazni_obj_fajlovi* -o *name*.elf
