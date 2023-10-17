@@ -1,0 +1,30 @@
+PROGRAM = program
+HX = arm-none-eabi-objcopy.exe -O ihex
+CC = arm-none-eabi-gcc.exe -c
+AS = arm-none-eabi-gcc.exe -c -x assembler
+LD = arm-none-eabi-ld.exe
+
+LINKER_SCRIPT = linker_script.ld 
+
+FLAGS_C = 
+FLAGS_C += -mcpu=cortex-m3 -mthumb
+
+FLAGS_S = 
+FLAGS_S += -mcpu=cortex-m3 -mthumb
+
+all : $(PROGRAM).elf $(PROGRAM).hex
+
+$(PROGRAM).hex : $(PROGRAM).elf
+	$(HX) $(<) $(@)
+
+$(PROGRAM).elf : main.o systick.o startup_code.o
+	$(LD) -T $(LINKER_SCRIPT) -o $(@) $(^)
+
+main.o : main.c
+	$(CC) $(FLAGS_C) -o $(@) $(<)
+
+systick.o : systick.c
+	$(CC) $(FLAGS_C) -o $(@) $(<)
+	
+startup_code.o : startup_code.s
+	$(AS) $(FLAGS_S) -o $(@) $(<)
