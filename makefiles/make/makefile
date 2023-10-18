@@ -1,56 +1,58 @@
 PROGRAM = program
 BUILD_DIR = build
+DEBUG_ENABLED = 1
 
-SRC = source
 INCLUDE = include
+SRC = source
 
-SOURCE_S_LIST = \
-$(SRC)/startup_code.s
+LD = arm-none-eabi-ld.exe
+HX = arm-none-eabi-objcopy.exe -O ihex
+CC = arm-none-eabi-gcc.exe -c -mcpu=cortex-m3 -mthumb -mlong-calls -MMD -MP -I$(INCLUDE)
+AS = arm-none-eabi-gcc.exe -c -mcpu=cortex-m3 -mthumb -x assembler
 
-SOURCE_C_LIST = \
-$(SRC)/main.c \
+FLAGS_DEBUG = -g -gdwarf-2 -fdebug-prefix-map==../
+
+ifeq ($(DEBUG_ENABLED), 1)
+CC += $(FLAGS_DEBUG)
+endif
+
+ifeq ($(DEBUG_ENABLED), 1)
+AS += $(FLAGS_DEBUG)
+endif
+
+LD_SCRIPT = linker_script.ld
+
+SRC_LIST_S = $(SRC)/startup_code.s
+
+SRC_LIST_C = $(SRC)/main.c \
 $(SRC)/systick.c
 
-OBJECT_LIST =
-OBJECT_LIST += $(addprefix $(BUILD_DIR)/, $(notdir $(SOURCE_S_LIST:.s=.o)))
-OBJECT_LIST += $(addprefix $(BUILD_DIR)/, $(notdir $(SOURCE_C_LIST:.c=.o)))
+OBJECT_LIST = 
+OBJECT_LIST += $(addprefix $(BUILD_DIR)/, $(notdir $(SRC_LIST_S:.s=.o)))
+OBJECT_LIST += $(addprefix $(BUILD_DIR)/, $(notdir $(SRC_LIST_C:.c=.o)))
 
-HX = arm-none-eabi-objcopy.exe -O ihex
-CC = arm-none-eabi-gcc.exe -c
-AS = arm-none-eabi-gcc.exe -c -x assembler
-LD = arm-none-eabi-ld.exe
-
-LINKER_SCRIPT = linker_script.ld 
-
-FLAGS_C = 
-FLAGS_C += -mcpu=cortex-m3 -mthumb
-FLAGS_C += -MMD -MP 
-FLAGS_C += -I$(INCLUDE)
-
-FLAGS_S = 
-FLAGS_S += -mcpu=cortex-m3 -mthumb
-
-vpath %.s $(sort $(dir $(SOURCE_S_LIST)))
-vpath %.c $(sort $(dir $(SOURCE_C_LIST)))
+vpath %.c $(SRC)
+vpath %.s $(SRC)
 
 all : $(BUILD_DIR)/$(PROGRAM).elf $(BUILD_DIR)/$(PROGRAM).hex
 
 $(BUILD_DIR)/$(PROGRAM).hex : $(BUILD_DIR)/$(PROGRAM).elf
 	$(HX) $(<) $(@)
 
-$(BUILD_DIR)/$(PROGRAM).elf : $(OBJECT_LIST) makefile
-	$(LD) -T $(LINKER_SCRIPT) -o $(@) $(OBJECT_LIST)
+$(BUILD_DIR)/$(PROGRAM).elf: $(OBJECT_LIST) makefile
+	$(LD) -T $(LD_SCRIPT) -o $(@) $(OBJECT_LIST)
 
 $(BUILD_DIR)/%.o : %.s makefile | $(BUILD_DIR)
-	$(AS) $(FLAGS_S) -o $(@) $(<)
+	$(AS) -o $(@) $(<)
 	
 $(BUILD_DIR)/%.o : %.c makefile | $(BUILD_DIR)
-	$(CC) $(FLAGS_C) -o $(@) $(<)
+	$(CC) -o $(@) $(<)
+	
 
-$(BUILD_DIR) :
+$(BUILD_DIR):
 	mkdir $(@)
 
-clean:
+clean :
 	rm -rf $(BUILD_DIR)
 
 -include $(wildcard $(BUILD_DIR)/*.d)
